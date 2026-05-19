@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VS · Portfolio – Vishnu Sharma</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
   --bg:#080810;--bg2:#0c0c18;--card:#111120;--card2:#161628;
@@ -140,14 +141,18 @@ section{padding:110px 72px;}
   overflow:hidden;cursor:pointer;transition:all .25s;
 }
 .cs-card:hover{border-color:rgba(124,58,237,.4);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.5);}
-.cs-card-thumb{height:140px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;overflow:hidden;}
+.cs-card-thumb{height:180px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;overflow:hidden;background:#0a0a14;}
+.cs-card-thumb canvas{width:100% !important;height:100% !important;object-fit:cover;display:block;}
+.thumb-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;}
+.thumb-spinner{width:24px;height:24px;border:2px solid rgba(255,255,255,.08);border-top-color:var(--purple-light);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 .cs-card-body{padding:20px;}
 .cs-card-client{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--purple-light);margin-bottom:8px;}
-.cs-card-title{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:8px;line-height:1.2;}
+.cs-card-title{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:8px;line-height:1.25;font-weight:700;}
 .cs-card-desc{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:16px;}
 .cs-card-stats{display:flex;gap:16px;}
-.cs-stat-val{font-family:'DM Serif Display',serif;font-size:1.1rem;line-height:1;}
-.cs-stat-label{font-size:10px;color:var(--muted);margin-top:2px;}
+.cs-stat-val{font-family:'Playfair Display',serif;font-size:1.2rem;line-height:1;font-weight:800;}
+.cs-stat-label{font-size:10px;color:var(--muted);margin-top:3px;font-weight:500;letter-spacing:.04em;}
 .cs-card-arrow{float:right;color:var(--muted);font-size:18px;transition:transform .2s;}
 .cs-card:hover .cs-card-arrow{transform:translateX(4px);color:var(--purple-light);}
 .pdf-badge{position:absolute;top:12px;right:12px;background:rgba(124,58,237,.85);color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em;padding:3px 9px;border-radius:100px;}
@@ -292,11 +297,110 @@ footer span{color:var(--purple-light);}
 .chart-axis span{font-size:11px;color:var(--muted2);}
 
 /* ═══ REVEAL ANIMATIONS ═══ */
-.reveal{opacity:0;transition:opacity .7s,transform .7s cubic-bezier(.23,1,.32,1);}
-.reveal.from-left{transform:translateX(-35px);}
-.reveal.from-right{transform:translateX(35px);}
-.reveal.from-bottom{transform:translateY(35px);}
+.reveal{opacity:0;transition:opacity .75s cubic-bezier(.23,1,.32,1),transform .75s cubic-bezier(.23,1,.32,1);}
+.reveal.from-left{transform:translateX(-40px);}
+.reveal.from-right{transform:translateX(40px);}
+.reveal.from-bottom{transform:translateY(40px);}
 .reveal.visible{opacity:1;transform:none;}
+
+/* Stagger children */
+.reveal:nth-child(1){transition-delay:.05s;}
+.reveal:nth-child(2){transition-delay:.13s;}
+.reveal:nth-child(3){transition-delay:.21s;}
+.reveal:nth-child(4){transition-delay:.29s;}
+.reveal:nth-child(5){transition-delay:.37s;}
+.reveal:nth-child(6){transition-delay:.45s;}
+
+/* ═══ PAGE TRANSITION OVERLAY ═══ */
+#page-overlay{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:var(--bg);
+  opacity:0;
+  transition:opacity .45s cubic-bezier(.4,0,.2,1);
+}
+#page-overlay.fade-in{opacity:1;pointer-events:all;}
+#page-overlay.fade-out{opacity:0;pointer-events:none;}
+
+/* ═══ SCROLL PROGRESS BAR ═══ */
+#scroll-bar{
+  position:fixed;top:0;left:0;height:2px;width:0%;z-index:9998;
+  background:linear-gradient(90deg,var(--purple),var(--purple-light),var(--red));
+  transition:width .1s linear;
+  box-shadow:0 0 8px rgba(167,139,250,.6);
+}
+
+/* ═══ SECTION HEADINGS ANIMATE ═══ */
+.sec-label,.cs-sec-label{
+  opacity:0;transform:translateY(12px);
+  transition:opacity .6s .1s,transform .6s .1s cubic-bezier(.23,1,.32,1);
+}
+.sec-label.vis,.cs-sec-label.vis{opacity:1;transform:none;}
+.sec-title,.cs-sec-h{
+  opacity:0;transform:translateY(16px);
+  transition:opacity .7s .2s,transform .7s .2s cubic-bezier(.23,1,.32,1);
+}
+.sec-title.vis,.cs-sec-h.vis{opacity:1;transform:none;}
+.sec-sub,.cs-sec-sub{
+  opacity:0;transform:translateY(12px);
+  transition:opacity .6s .3s,transform .6s .3s cubic-bezier(.23,1,.32,1);
+}
+.sec-sub.vis,.cs-sec-sub.vis{opacity:1;transform:none;}
+
+/* ═══ CARD HOVER LIFT ═══ */
+.cs-card{transition:all .3s cubic-bezier(.23,1,.32,1);}
+.cs-card:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 28px 60px rgba(0,0,0,.6),0 0 0 1px rgba(124,58,237,.25);}
+.cs-card-thumb canvas{transition:transform .4s cubic-bezier(.23,1,.32,1);}
+.cs-card:hover .cs-card-thumb canvas{transform:scale(1.04);}
+
+/* ═══ PDF MODAL ANIMATION ═══ */
+#pdf-modal{transition:opacity .35s cubic-bezier(.4,0,.2,1);}
+#pdf-modal.modal-hidden{opacity:0;pointer-events:none;}
+#pdf-modal.modal-visible{opacity:1;pointer-events:all;}
+#pdf-modal-inner{
+  transform:translateY(32px) scale(.97);
+  transition:transform .4s cubic-bezier(.23,1,.32,1);
+  display:flex;flex-direction:column;height:100%;
+}
+#pdf-modal.modal-visible #pdf-modal-inner{transform:none;}
+
+/* ═══ FEATURED CARD PULSE ═══ */
+.feat-wrap{transition:transform .3s cubic-bezier(.23,1,.32,1),box-shadow .3s;}
+.feat-wrap:hover{transform:translateY(-4px);box-shadow:0 32px 70px rgba(0,0,0,.5),0 0 0 1px rgba(244,63,94,.15);}
+
+/* ═══ SMOOTH SCROLL INDICATOR ═══ */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--muted2);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  animation:hintFade 3s 2s ease-in-out forwards;
+  opacity:0;
+}
+@keyframes hintFade{
+  0%{opacity:0;transform:translateX(-50%) translateY(8px);}
+  20%{opacity:1;transform:translateX(-50%) translateY(0);}
+  80%{opacity:1;}
+  100%{opacity:0;}
+}
+.scroll-hint-line{
+  width:1px;height:40px;
+  background:linear-gradient(to bottom,transparent,var(--purple-light),transparent);
+  animation:linePulse 1.5s ease-in-out infinite;
+}
+@keyframes linePulse{
+  0%,100%{opacity:.3;transform:scaleY(.8);}
+  50%{opacity:1;transform:scaleY(1);}
+}
+
+/* ═══ NAV SCROLL EFFECT ═══ */
+nav{transition:background .3s,box-shadow .3s,height .3s;}
+nav.scrolled{background:rgba(8,8,16,.98);box-shadow:0 4px 24px rgba(0,0,0,.3);height:54px;}
+
+/* ═══ SKILL BAR ANIMATION ═══ */
+.bar-fill{transition:width 1.4s cubic-bezier(.23,1,.32,1),opacity .3s;}
+
+/* ═══ STAT TILE POP ═══ */
+.stat-tile{transition:all .25s cubic-bezier(.23,1,.32,1);}
+.stat-tile:hover{transform:translateY(-3px) scale(1.02);border-color:rgba(124,58,237,.4);box-shadow:0 12px 32px rgba(0,0,0,.3);}
 
 /* ═══ PARTICLES ═══ */
 #bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;}
@@ -318,6 +422,8 @@ footer span{color:var(--purple-light);}
 
 <div class="cursor-glow" id="cursorGlow"></div>
 <canvas id="bg-canvas"></canvas>
+<div id="page-overlay"></div>
+<div id="scroll-bar"></div>
 
 <!-- ═══════════════════ PORTFOLIO PAGE ═══════════════════ -->
 <div id="page-portfolio" class="page active">
@@ -450,7 +556,9 @@ footer span{color:var(--purple-light);}
   <!-- Cards Grid -->
   <div class="cs-grid">
     <div class="cs-card theme-blue reveal from-bottom" onclick="openPDF('samsung-a57-report.pdf','Samsung Galaxy A57 5G — Meme Campaign Report')">
-      <div class="cs-card-thumb">📱<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(59,130,246,.8);text-transform:uppercase;">Samsung</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-samsung">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Samsung · Meme Campaign</div>
         <div class="cs-card-title">Galaxy A57 5G — Meme Performance Report</div>
@@ -464,7 +572,9 @@ footer span{color:var(--purple-light);}
     </div>
 
     <div class="cs-card theme-orange reveal from-bottom" onclick="openPDF('db-womens-day.pdf','Dainik Bhaskar — International Women\'s Day')">
-      <div class="cs-card-thumb">📰<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(251,146,60,.8);text-transform:uppercase;">Dainik Bhaskar</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-db">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Dainik Bhaskar · Women's Day</div>
         <div class="cs-card-title">International Women's Day Front-Page Takeover</div>
@@ -478,7 +588,9 @@ footer span{color:var(--purple-light);}
     </div>
 
     <div class="cs-card theme-purple reveal from-bottom" onclick="openPDF('samsung-comment-seeding.pdf','Samsung A57 — Comment Seeding Strategy')">
-      <div class="cs-card-thumb">💬<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(167,139,250,.8);text-transform:uppercase;">Samsung</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-seeding">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Samsung Galaxy A57 · Comment Strategy</div>
         <div class="cs-card-title">Turning Negativity into Engagement</div>
@@ -492,7 +604,9 @@ footer span{color:var(--purple-light);}
     </div>
 
     <div class="cs-card theme-green reveal from-bottom" onclick="openPDF('twitter-trending-greenhearts.pdf','#GREENHEARTSonPLAYGROUND — Twitter Trending Report')">
-      <div class="cs-card-thumb">🐦<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(34,197,94,.8);text-transform:uppercase;">Amazon miniTV</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-twitter">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Amazon miniTV · Twitter Trending</div>
         <div class="cs-card-title">#GREENHEARTSonPLAYGROUND Trending</div>
@@ -506,7 +620,9 @@ footer span{color:var(--purple-light);}
     </div>
 
     <div class="cs-card theme-red reveal from-bottom" onclick="openPDF('band-baaja-bitiya.pdf','Band Baaja Bitiya — Campaign Report')">
-      <div class="cs-card-thumb">🎬<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(244,63,94,.8);text-transform:uppercase;">SeedMedia</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-bbb">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Band Baaja Bitiya · Campaign Report</div>
         <div class="cs-card-title">Band Baaja Bitiya</div>
@@ -518,7 +634,9 @@ footer span{color:var(--purple-light);}
     </div>
 
     <div class="cs-card theme-blue reveal from-bottom" onclick="openPDF('beardo-godfather.pdf','Beardo Godfather — Campaign Report')">
-      <div class="cs-card-thumb">🧔<span style="position:absolute;bottom:12px;left:14px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(59,130,246,.8);text-transform:uppercase;">Beardo</span><span class="pdf-badge">PDF</span></div>
+      <div class="cs-card-thumb" id="thumb-beardo">
+        <div class="thumb-loading"><div class="thumb-spinner"></div>Loading preview</div>
+      </div>
       <div class="cs-card-body">
         <div class="cs-card-client">Beardo · Product Campaign</div>
         <div class="cs-card-title">Beardo Godfather</div>
@@ -531,15 +649,14 @@ footer span{color:var(--purple-light);}
   </div>
 
   <!-- PDF VIEWER MODAL -->
-  <div id="pdf-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);flex-direction:column;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:rgba(10,10,20,.95);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
-      <div id="pdf-modal-title" style="font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;color:#eeeeff;"></div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <a id="pdf-download-btn" href="#" download style="background:var(--purple);color:#fff;border:none;border-radius:100px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">⬇ Download PDF</a>
-        <button onclick="closePDF()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:7px 18px;font-size:12px;font-weight:600;color:#eeeeff;cursor:pointer;font-family:'Manrope',sans-serif;">✕ Close</button>
+  <div id="pdf-modal" class="modal-hidden" style="position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.95);backdrop-filter:blur(16px);">
+    <div id="pdf-modal-inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;background:rgba(8,8,16,.98);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;">
+        <div id="pdf-modal-title" style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#eeeeff;letter-spacing:.02em;"></div>
+        <button onclick="closePDF()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:8px 20px;font-size:12.5px;font-weight:600;color:#eeeeff;cursor:pointer;font-family:'Manrope',sans-serif;letter-spacing:.04em;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">✕ Close</button>
       </div>
+      <iframe id="pdf-iframe" style="flex:1;width:100%;border:none;background:#111120;" sandbox="allow-scripts allow-same-origin"></iframe>
     </div>
-    <iframe id="pdf-iframe" style="flex:1;width:100%;border:none;background:#1a1a2e;"></iframe>
   </div>
 </section>
 
@@ -869,7 +986,26 @@ footer span{color:var(--purple-light);}
 <script>
 /* ── CURSOR GLOW ── */
 const glow=document.getElementById('cursorGlow');
-document.addEventListener('mousemove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px';});
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function animGlow(){
+  cx+=(mx-cx)*.1; cy+=(my-cy)*.1;
+  glow.style.left=cx+'px'; glow.style.top=cy+'px';
+  requestAnimationFrame(animGlow);
+})();
+
+/* ── SCROLL PROGRESS BAR ── */
+const scrollBar=document.getElementById('scroll-bar');
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;
+  scrollBar.style.width=Math.min(pct,100)+'%';
+},{ passive:true });
+
+/* ── NAV SCROLL SHRINK ── */
+const mainNav=document.querySelector('nav');
+window.addEventListener('scroll',()=>{
+  mainNav && (window.scrollY>60?mainNav.classList.add('scrolled'):mainNav.classList.remove('scrolled'));
+},{ passive:true });
 
 /* ── PARTICLES ── */
 const canvas=document.getElementById('bg-canvas');
@@ -881,29 +1017,46 @@ class P{constructor(){this.reset();}reset(){this.x=Math.random()*W;this.y=Math.r
 for(let i=0;i<70;i++)parts.push(new P());
 (function loop(){ctx.clearRect(0,0,W,H);parts.forEach(p=>{p.step();p.draw();});requestAnimationFrame(loop);})();
 
+/* ── PAGE TRANSITION ── */
+const overlay=document.getElementById('page-overlay');
+function fadeTransition(cb){
+  overlay.classList.add('fade-in');
+  setTimeout(()=>{
+    cb();
+    overlay.classList.remove('fade-in');
+    overlay.classList.add('fade-out');
+    setTimeout(()=>overlay.classList.remove('fade-out'),450);
+  },380);
+}
+
 /* ── PAGE SWITCH ── */
 let currentPage='portfolio';
 function openCS(name){
-  document.getElementById('page-portfolio').classList.remove('active');
-  document.querySelectorAll('.cs-page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('cs-topnav').style.display='flex';
-  const titles={coke:'Coke Studio Bharat Live',samsung:'Samsung Galaxy A57 5G',db:'Dainik Bhaskar – Women\'s Day',seeding:'Samsung A57 – Comment Seeding',twitter:'#GREENHEARTSonPLAYGROUND'};
-  document.getElementById('cs-nav-title').textContent=titles[name]||'';
-  currentPage=name;window.scrollTo(0,0);
-  setTimeout(()=>{
-    document.querySelectorAll('#page-'+name+' .reveal').forEach(el=>{el.classList.remove('visible');obs.observe(el);});
-    document.querySelectorAll('#page-'+name+' .chart-bar').forEach(b=>{b.style.width='0';setTimeout(()=>{b.style.width=b.dataset.w+'%';},400);});
-  },100);
+  fadeTransition(()=>{
+    document.getElementById('page-portfolio').classList.remove('active');
+    document.querySelectorAll('.cs-page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+    document.getElementById('cs-topnav').style.display='flex';
+    const titles={coke:'Coke Studio Bharat Live',samsung:'Samsung Galaxy A57 5G',db:'Dainik Bhaskar – Women\'s Day',seeding:'Samsung A57 – Comment Seeding',twitter:'#GREENHEARTSonPLAYGROUND'};
+    document.getElementById('cs-nav-title').textContent=titles[name]||'';
+    currentPage=name;window.scrollTo(0,0);
+    setTimeout(()=>{
+      document.querySelectorAll('#page-'+name+' .reveal').forEach(el=>{el.classList.remove('visible');obs.observe(el);});
+      document.querySelectorAll('#page-'+name+' .sec-label,.sec-title,.sec-sub,.cs-sec-label,.cs-sec-h,.cs-sec-sub').forEach(el=>{el.classList.remove('vis');headObs.observe(el);});
+      document.querySelectorAll('#page-'+name+' .chart-bar').forEach(b=>{b.style.width='0';setTimeout(()=>{b.style.width=b.dataset.w+'%';},400);});
+    },100);
+  });
 }
 function closeCS(){
-  document.querySelectorAll('.cs-page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-portfolio').classList.add('active');
-  document.getElementById('cs-topnav').style.display='none';
-  currentPage='portfolio';window.scrollTo(0,0);
+  fadeTransition(()=>{
+    document.querySelectorAll('.cs-page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-portfolio').classList.add('active');
+    document.getElementById('cs-topnav').style.display='none';
+    currentPage='portfolio';window.scrollTo(0,0);
+  });
 }
 
-/* ── INTERSECTION OBSERVER ── */
+/* ── INTERSECTION OBSERVER – REVEALS ── */
 const obs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(e.isIntersecting){
@@ -911,9 +1064,15 @@ const obs=new IntersectionObserver(entries=>{
       e.target.querySelectorAll('.bar-fill').forEach(b=>{setTimeout(()=>{b.style.width=b.dataset.w+'%';},200);});
     }
   });
-},{threshold:.15,rootMargin:'0px 0px -50px 0px'});
+},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+
+/* ── INTERSECTION OBSERVER – HEADINGS ── */
+const headObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('vis'); });
+},{threshold:.2});
 
 document.querySelectorAll('.reveal,.skill-card').forEach(el=>obs.observe(el));
+document.querySelectorAll('.sec-label,.sec-title,.sec-sub').forEach(el=>headObs.observe(el));
 
 /* ── NAV ACTIVE ── */
 const secs=document.querySelectorAll('section[id]');
@@ -922,32 +1081,63 @@ window.addEventListener('scroll',()=>{
   let cur='';
   secs.forEach(s=>{if(window.scrollY>=s.offsetTop-110)cur=s.id;});
   navAs.forEach(a=>{a.style.color=a.getAttribute('href')==='#'+cur?'var(--text)':'';});
+},{ passive:true });
+
+/* ── PDF.js THUMBNAILS ── */
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const thumbMap=[
+  {id:'thumb-samsung', file:'samsung-a57-report.pdf'},
+  {id:'thumb-db',      file:'db-womens-day.pdf'},
+  {id:'thumb-seeding', file:'samsung-comment-seeding.pdf'},
+  {id:'thumb-twitter', file:'twitter-trending-greenhearts.pdf'},
+  {id:'thumb-bbb',     file:'band-baaja-bitiya.pdf'},
+  {id:'thumb-beardo',  file:'beardo-godfather.pdf'},
+];
+async function renderThumb(id,file){
+  try{
+    const container=document.getElementById(id);
+    if(!container)return;
+    const pdf=await pdfjsLib.getDocument(file).promise;
+    const page=await pdf.getPage(1);
+    const vp=page.getViewport({scale:1});
+    const containerW=container.offsetWidth||360;
+    const scale=containerW/vp.width;
+    const viewport=page.getViewport({scale});
+    const canvas=document.createElement('canvas');
+    canvas.width=viewport.width;canvas.height=viewport.height;
+    canvas.style.width='100%';canvas.style.height='100%';
+    canvas.style.objectFit='cover';canvas.style.display='block';
+    await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+    container.innerHTML='';
+    canvas.style.opacity='0';canvas.style.transition='opacity .5s';
+    container.appendChild(canvas);
+    requestAnimationFrame(()=>{ canvas.style.opacity='1'; });
+  }catch(e){
+    const c=document.getElementById(id);
+    if(c)c.innerHTML='<div class="thumb-loading" style="opacity:.35">Preview unavailable</div>';
+  }
+}
+window.addEventListener('load',()=>{
+  thumbMap.forEach(({id,file})=>renderThumb(id,file));
 });
 
 /* ── PDF VIEWER ── */
-function openPDF(filename, title){
-  const modal = document.getElementById('pdf-modal');
-  const iframe = document.getElementById('pdf-iframe');
-  const titleEl = document.getElementById('pdf-modal-title');
-  const dlBtn = document.getElementById('pdf-download-btn');
-  titleEl.textContent = title;
-  iframe.src = filename;
-  dlBtn.href = filename;
-  dlBtn.download = filename;
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+const pdfModal=document.getElementById('pdf-modal');
+function openPDF(filename,title){
+  document.getElementById('pdf-modal-title').textContent=title;
+  document.getElementById('pdf-iframe').src=filename+'#toolbar=0&navpanes=0&scrollbar=1';
+  pdfModal.style.display='block';
+  requestAnimationFrame(()=>{ pdfModal.classList.remove('modal-hidden'); pdfModal.classList.add('modal-visible'); });
+  document.body.style.overflow='hidden';
 }
 function closePDF(){
-  const modal = document.getElementById('pdf-modal');
-  const iframe = document.getElementById('pdf-iframe');
-  modal.style.display = 'none';
-  iframe.src = '';
-  document.body.style.overflow = '';
+  pdfModal.classList.remove('modal-visible');
+  pdfModal.classList.add('modal-hidden');
+  setTimeout(()=>{ pdfModal.style.display='none'; document.getElementById('pdf-iframe').src=''; },380);
+  document.body.style.overflow='';
 }
-document.getElementById('pdf-modal').addEventListener('click', function(e){
-  if(e.target === this) closePDF();
-});
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') closePDF(); });
+pdfModal.addEventListener('click',function(e){ if(e.target===this)closePDF(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closePDF(); closeCS(); } });
 
 /* ── SMOOTH SCROLL ── */
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
